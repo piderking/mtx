@@ -1,19 +1,13 @@
-#[derive(Debug)]
-pub struct Key {
-    inner: String
-}
+pub mod expressions;
+pub mod base;
+use tokio_util::io::ReaderStream;
 
-#[derive(Debug)]
-pub struct Variable {
-    inner: String
-}
 
-#[derive(Debug)]
-pub enum Value {
-    Char(i32),
-    Number(f32)
+use expressions::Transform;
 
-}
+use std::fmt::Debug;
+use crate::ast::{base::{Key, Variable}, expressions::Expression};
+
 
 // Transforms Like 
 // Multiply
@@ -22,20 +16,6 @@ pub enum Value {
 
 
 
-#[derive(Debug)]
-pub struct Function {
-    // Transforms == Opperations
-    transform: Vec<Box<dyn Transform>>,
-    expression: Vec<Expression>
-}
-
-#[derive(Debug)]
-pub enum Expression {
-    Function(Function),
-    Constant(Value),
-    Variable(Variable),
-    Variables(Vec<Variable>)
-}
 
 
 #[derive(Debug)]
@@ -59,25 +39,43 @@ pub enum Statement {
     Expression(Expression),
 
 
-    // SYstem Commands
+    // System Commands
     System(System)
 
 }
+impl From<syn::Item> for Statement {
+    fn from(value: syn::Item) -> Self {
+        match value {
+            syn::Item::Const(item_const) => Self::Definition { key: item_const.ident.into(), vars: Vec::new(), expression: item_const.expr.into() },
+            //syn::Item::Enum(item_enum) => todo!(),
+            //syn::Item::ExternCrate(item_extern_crate) => todo!(),
+            syn::Item::Fn(item_fn) => todo!(),
+            //syn::Item::ForeignMod(item_foreign_mod) => todo!(),
+            //syn::Item::Impl(item_impl) => todo!(),
+            //syn::Item::Macro(item_macro) => todo!(),
+            //syn::Item::Mod(item_mod) => todo!(),
+            syn::Item::Static(item_static) => todo!(),
+            //syn::Item::Struct(item_struct) => todo!(),
+            //syn::Item::Trait(item_trait) => todo!(),
+            //syn::Item::TraitAlias(item_trait_alias) => todo!(),
+            //syn::Item::Type(item_type) => todo!(),
+            //syn::Item::Union(item_union) => todo!(),
+            //syn::Item::Use(item_use) => todo!(),
+            //syn::Item::Verbatim(token_stream) => todo!(),
+            _ => todo!("Not Implemented Yet"),
+        }
+    }
+}  
 
 #[derive(Debug)]
 pub struct AST {
     statements: Vec<Statement>
 }
 
-impl AST {
-    pub fn from(str: String) -> AST {
-        return AST {
-            statements: vec![]
-        }
-    }
-    pub fn new() -> AST {
-        return AST {
-            statements: vec![]
+impl From<syn::File> for AST {
+    fn from(value: syn::File) -> Self {
+        AST {
+            statements: value.items.iter().map(|f| f.clone().into()).collect()
         }
     }
 }
@@ -94,5 +92,6 @@ mod tests {
         
         //assert_eq!(add(1, 2), 3);
     }
+
 
 }
