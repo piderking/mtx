@@ -1,8 +1,6 @@
-
-
 #[derive(Debug)]
 pub struct Key {
-    inner: String
+    inner: String,
 }
 
 impl From<String> for Key {
@@ -14,20 +12,26 @@ impl From<String> for Key {
 impl From<syn::Ident> for Key {
     fn from(value: syn::Ident) -> Self {
         Self {
-            inner: value.to_string()
+            inner: value.to_string(),
         }
     }
 }
 
-
 #[derive(Debug)]
 pub struct Variable {
-    inner: String
+    inner: String,
+}
+impl From<syn::Ident> for Variable {
+    fn from(value: syn::Ident) -> Self {
+        Self {
+            inner: value.to_string(),
+        }
+    }
 }
 
 #[derive(Debug)]
 pub enum Value {
     Char(i32),
-    Number(f32)
-
+    Number(f32),
 }
+

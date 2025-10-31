@@ -1,26 +1,23 @@
-pub mod expressions;
 pub mod base;
+pub mod expressions;
 use tokio_util::io::ReaderStream;
-
 
 use expressions::Transform;
 
+use crate::ast::{
+    base::{Key, Variable},
+    expressions::Expression,
+};
 use std::fmt::Debug;
-use crate::ast::{base::{Key, Variable}, expressions::Expression};
 
-
-// Transforms Like 
+// Transforms Like
 // Multiply
 // Derivative
 // Fraction
 
-
-
-
-
 #[derive(Debug)]
 pub enum System {
-    Print(Expression)
+    Print(Expression),
 }
 
 #[derive(Debug)]
@@ -33,27 +30,52 @@ pub enum Statement {
     // X = 5
     // X = ( f(z) )
     // F'(X)
-    Definition{key: Key, vars: Vec<Variable>, expression: Expression },
-    
+    Definition {
+        key: Key,
+        vars: Vec<Variable>,
+        expression: Expression,
+    },
 
     Expression(Expression),
 
-
     // System Commands
-    System(System)
-
+    System(System),
 }
 impl From<syn::Item> for Statement {
     fn from(value: syn::Item) -> Self {
         match value {
-            syn::Item::Const(item_const) => Self::Definition { key: item_const.ident.into(), vars: Vec::new(), expression: item_const.expr.into() },
+            // const MAX: u16 = 5555
+            syn::Item::Const(item_const) => Self::Definition {
+                key: item_const.ident.into(),
+                vars: Vec::new(),
+                expression: item_const.expr.into(),
+            },
             //syn::Item::Enum(item_enum) => todo!(),
             //syn::Item::ExternCrate(item_extern_crate) => todo!(),
-            syn::Item::Fn(item_fn) => todo!(),
+            syn::Item::Fn(func) => Self::Definition {
+                key: func.sig.ident.into(),
+                vars: func
+                    .sig
+                    .inputs
+                    .iter()
+                    .filter_map(|arg| match arg {
+                        syn::FnArg::Typed(pt) => {
+                            if let syn::Pat::Ident(ident) = *pt.pat {
+                                Option::Some(ident.ident.into())
+                            } else {
+                                Option::None
+                            }
+                        }
+                        _ => Option::None,
+                    })
+                    .collect(),
+                expression: ,
+            },
             //syn::Item::ForeignMod(item_foreign_mod) => todo!(),
             //syn::Item::Impl(item_impl) => todo!(),
             //syn::Item::Macro(item_macro) => todo!(),
             //syn::Item::Mod(item_mod) => todo!(),
+            // static BIKE: Shed = Shed(42);
             syn::Item::Static(item_static) => todo!(),
             //syn::Item::Struct(item_struct) => todo!(),
             //syn::Item::Trait(item_trait) => todo!(),
@@ -65,17 +87,17 @@ impl From<syn::Item> for Statement {
             _ => todo!("Not Implemented Yet"),
         }
     }
-}  
+}
 
 #[derive(Debug)]
 pub struct AST {
-    statements: Vec<Statement>
+    statements: Vec<Statement>,
 }
 
 impl From<syn::File> for AST {
     fn from(value: syn::File) -> Self {
         AST {
-            statements: value.items.iter().map(|f| f.clone().into()).collect()
+            statements: value.items.iter().map(|f| f.clone().into()).collect(),
         }
     }
 }
@@ -89,9 +111,8 @@ mod tests {
     fn empty_ast() {
         let ast: AST = AST::new();
         println!("{:?}", ast)
-        
+
         //assert_eq!(add(1, 2), 3);
     }
-
-
 }
+
