@@ -1,23 +1,62 @@
 pub mod base;
 pub mod expressions;
+use rustpython_parser::{ast::{Expr, ModModule}, text_size::TextRange};
+use std::fmt::Debug;
 use tokio_util::io::ReaderStream;
 
-use expressions::Transform;
+use crate::{ast::base::{Ident, Value, Variable}, symbols::{self, Symbols}};
 
-use crate::ast::{
-    base::{Key, Variable},
-    expressions::Expression,
-};
-use std::fmt::Debug;
+// Mathematical Functions
+pub trait Opperation where Self: Debug {
+    fn stringify(&self) -> String;
+}
 
-// Transforms Like
-// Multiply
-// Derivative
-// Fraction
+
+// Hold the Values
+#[derive(Debug)]
+pub struct Add {
+    terms: Vec<Expression>,
+}
+impl Opperation for Add {
+    fn stringify(&self) -> String {
+        self.terms.iter().map(|v|v.to_string()).collect::<Vec<_>>().join( format!(" {} ", Symbols::Addition.as_str()).as_str()  )
+    }
+}
+// Root
+
+
+
+#[derive(Debug)]
+pub enum Expression {
+    // Mathematic Opperations
+    // Advanced Mathematical Opperations
+    Opperations(Box<dyn Opperation>),
+    // User Definied Functions
+    FunctionCall(Ident, Vec<Expression>),
+    VariableRef(Variable),
+    Constant(Value)
+}
+
+impl ToString for Expression {
+    fn to_string(&self) -> String {
+        todo!()
+    }
+}
+impl From<Expr> for Expression {
+    fn from(value: Expr) -> Self {
+        todo!()
+    }
+}
 
 #[derive(Debug)]
 pub enum System {
     Print(Expression),
+}
+
+#[derive(Debug)]
+pub enum Definition {
+    Function(Ident, Vec<Variable>, Expression),
+    Constant(Ident, Expression),
 }
 
 #[derive(Debug)]
@@ -27,79 +66,60 @@ pub enum Statement {
     //Structure(),
 
     // Constant Definitions
-    // X = 5
-    // X = ( f(z) )
-    // F'(X)
-    Definition {
-        key: Key,
-        vars: Vec<Variable>,
-        expression: Expression,
-    },
+    // s =
+    // Function Definitions
+    // f(x)
+    Definition(Definition),
 
+    // Print
     Expression(Expression),
 
     // System Commands
     System(System),
 }
-impl From<syn::Item> for Statement {
-    fn from(value: syn::Item) -> Self {
-        match value {
-            // const MAX: u16 = 5555
-            syn::Item::Const(item_const) => Self::Definition {
-                key: item_const.ident.into(),
-                vars: Vec::new(),
-                expression: item_const.expr.into(),
+
+impl From<ModModule<TextRange>> for Statement {
+    fn from(value: ModModule<TextRange>) -> Self {
+        match value.body.iter().nth(0) {
+            Some(n) => match n {
+                rustpython_parser::ast::Stmt::FunctionDef(func_def) => {
+                    Statement::Definition(Definition::Function(
+                        func_def.name.into(),
+                        func_def // Implement All Other Arg than just positional args
+                            .args
+                            .posonlyargs
+                            .iter()
+                            .map(|i| i.def.arg.into())
+                            .collect(),
+                            {
+                                // Do Stuff with the body of the function
+                                // Iterate Through Body
+                                // Value of Return Result
+                                match func_def.body.last() {
+                                    Some(n) => match n {
+                                        rustpython_parser::ast::Stmt::Return(stmt_return) => ,
+                                        _ => todo!("Has to return a value")    
+                                    },
+                                    None => todo!(),
+                                }
+
+                            },
+                    ))
+                }
+                // rustpython_parser::ast::Stmt::AsyncFunctionDef(stmt_async_function_def) => todo!(),
+                _ => todo!("Not Implemented Yet"),
             },
-            //syn::Item::Enum(item_enum) => todo!(),
-            //syn::Item::ExternCrate(item_extern_crate) => todo!(),
-            syn::Item::Fn(func) => Self::Definition {
-                key: func.sig.ident.into(),
-                vars: func
-                    .sig
-                    .inputs
-                    .iter()
-                    .filter_map(|arg| match arg {
-                        syn::FnArg::Typed(pt) => {
-                            if let syn::Pat::Ident(ident) = *pt.pat {
-                                Option::Some(ident.ident.into())
-                            } else {
-                                Option::None
-                            }
-                        }
-                        _ => Option::None,
-                    })
-                    .collect(),
-                expression: ,
-            },
-            //syn::Item::ForeignMod(item_foreign_mod) => todo!(),
-            //syn::Item::Impl(item_impl) => todo!(),
-            //syn::Item::Macro(item_macro) => todo!(),
-            //syn::Item::Mod(item_mod) => todo!(),
-            // static BIKE: Shed = Shed(42);
-            syn::Item::Static(item_static) => todo!(),
-            //syn::Item::Struct(item_struct) => todo!(),
-            //syn::Item::Trait(item_trait) => todo!(),
-            //syn::Item::TraitAlias(item_trait_alias) => todo!(),
-            //syn::Item::Type(item_type) => todo!(),
-            //syn::Item::Union(item_union) => todo!(),
-            //syn::Item::Use(item_use) => todo!(),
-            //syn::Item::Verbatim(token_stream) => todo!(),
-            _ => todo!("Not Implemented Yet"),
+            None => panic!("Empty Mod Module"),
         }
     }
 }
 
 #[derive(Debug)]
 pub struct AST {
+    // imports: Vec<>
+    // global_definitions: Vec<Definition>
+    //
     statements: Vec<Statement>,
-}
-
-impl From<syn::File> for AST {
-    fn from(value: syn::File) -> Self {
-        AST {
-            statements: value.items.iter().map(|f| f.clone().into()).collect(),
-        }
-    }
 }
 
 #[cfg(test)]
@@ -109,10 +129,6 @@ mod tests {
 
     #[test]
     fn empty_ast() {
-        let ast: AST = AST::new();
-        println!("{:?}", ast)
-
         //assert_eq!(add(1, 2), 3);
     }
 }
-
