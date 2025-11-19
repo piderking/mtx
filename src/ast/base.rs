@@ -1,8 +1,8 @@
-use rustpython_parser::ast::Identifier;
+use rustpython_parser::ast::{ExprName, Identifier};
 
 #[derive(Debug)]
 pub struct Ident {
-    inner: String,
+    pub inner: String,
 }
 
 impl From<String> for Ident {
@@ -19,7 +19,7 @@ impl From<Identifier> for Ident {
 }
 #[derive(Debug)]
 pub struct Variable {
-    inner: String,
+    pub inner: String,
 }
 
 impl From<String> for Variable {
@@ -27,14 +27,6 @@ impl From<String> for Variable {
         Self { inner: value }
     }
 }
-impl From<Identifier> for Variable {
-    fn from(value: Identifier) -> Self {
-        Self {
-            inner: String::from(value.as_str()),
-        }
-    }
-}
-
 #[derive(Debug, PartialEq)]
 pub enum Value {
     // Decimal Value for Char
@@ -47,7 +39,11 @@ impl From<char> for Value {
         Value::Char((value as u32) as i32)
     }
 }
-
+impl From<f32> for Value {
+    fn from(value: f32) -> Value {
+        Value::Number(value)
+    }
+}
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.

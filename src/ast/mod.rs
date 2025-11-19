@@ -1,16 +1,24 @@
 pub mod base;
 pub mod expressions;
-use rustpython_parser::{ast::{Expr, ModModule}, text_size::TextRange};
+use rustpython_parser::{
+    ast::{Expr, ModModule, StmtReturn},
+    text_size::TextRange,
+};
 use std::fmt::Debug;
 use tokio_util::io::ReaderStream;
 
-use crate::{ast::base::{Ident, Value, Variable}, symbols::{self, Symbols}};
+use crate::{
+    ast::base::{Ident, Value, Variable},
+    symbols::{self, Symbols},
+};
 
 // Mathematical Functions
-pub trait Opperation where Self: Debug {
+pub trait Opperation
+where
+    Self: Debug,
+{
     fn stringify(&self) -> String;
 }
-
 
 // Hold the Values
 #[derive(Debug)]
@@ -19,12 +27,14 @@ pub struct Add {
 }
 impl Opperation for Add {
     fn stringify(&self) -> String {
-        self.terms.iter().map(|v|v.to_string()).collect::<Vec<_>>().join( format!(" {} ", Symbols::Addition.as_str()).as_str()  )
+        self.terms
+            .iter()
+            .map(|v| v.to_string())
+            .collect::<Vec<_>>()
+            .join(format!(" {} ", Symbols::Addition.as_str()).as_str())
     }
 }
 // Root
-
-
 
 #[derive(Debug)]
 pub enum Expression {
@@ -34,20 +44,18 @@ pub enum Expression {
     // User Definied Functions
     FunctionCall(Ident, Vec<Expression>),
     VariableRef(Variable),
-    Constant(Value)
+    Constant(Value),
+    Empty, // 0
 }
 
-impl ToString for Expression {
-    fn to_string(&self) -> String {
-        todo!()
+impl Expression {
+    pub fn from_return_value(ret: StmtReturn) -> Expression {
+        match ret.value {
+            Option::Some(n) => Expression::from(*n),
+            Option::None => Expression::Empty,
+        }
     }
 }
-impl From<Expr> for Expression {
-    fn from(value: Expr) -> Self {
-        todo!()
-    }
-}
-
 #[derive(Debug)]
 pub enum System {
     Print(Expression),
@@ -84,26 +92,28 @@ impl From<ModModule<TextRange>> for Statement {
             Some(n) => match n {
                 rustpython_parser::ast::Stmt::FunctionDef(func_def) => {
                     Statement::Definition(Definition::Function(
-                        func_def.name.into(),
+                        func_def.name.clone().into(),
                         func_def // Implement All Other Arg than just positional args
                             .args
                             .posonlyargs
                             .iter()
-                            .map(|i| i.def.arg.into())
+                            .map(|i| i.def.arg.clone().into())
                             .collect(),
-                            {
-                                // Do Stuff with the body of the function
-                                // Iterate Through Body
-                                // Value of Return Result
-                                match func_def.body.last() {
-                                    Some(n) => match n {
-                                        rustpython_parser::ast::Stmt::Return(stmt_return) => ,
-                                        _ => todo!("Has to return a value")    
-                                    },
-                                    None => todo!(),
-                                }
+                        {
+                            // Do Stuff with the body of the function
+                            // Iterate Through Body
+                            // Value of Return Result
+                            match func_def.body.last() {
+                                Some(n) => match n {
+                                    rustpython_parser::ast::Stmt::Return(ret) => {
+                                        Expression::from_return_value(ret.clone())
+                                    }
+                                    _ => todo!("Value MUST be returned..."),
+                                },
 
-                            },
+                                None => Expression::Empty,
+                            }
+                        },
                     ))
                 }
                 // rustpython_parser::ast::Stmt::AsyncFunctionDef(stmt_async_function_def) => todo!(),
