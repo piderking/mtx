@@ -27,6 +27,7 @@ impl From<String> for Variable {
         Self { inner: value }
     }
 }
+
 #[derive(Debug, PartialEq)]
 pub enum Value {
     // Decimal Value for Char

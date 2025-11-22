@@ -86,46 +86,9 @@ pub enum Statement {
     System(System),
 }
 
-impl From<ModModule<TextRange>> for Statement {
-    fn from(value: ModModule<TextRange>) -> Self {
-        match value.body.iter().nth(0) {
-            Some(n) => match n {
-                rustpython_parser::ast::Stmt::FunctionDef(func_def) => {
-                    Statement::Definition(Definition::Function(
-                        func_def.name.clone().into(),
-                        func_def // Implement All Other Arg than just positional args
-                            .args
-                            .posonlyargs
-                            .iter()
-                            .map(|i| i.def.arg.clone().into())
-                            .collect(),
-                        {
-                            // Do Stuff with the body of the function
-                            // Iterate Through Body
-                            // Value of Return Result
-                            match func_def.body.last() {
-                                Some(n) => match n {
-                                    rustpython_parser::ast::Stmt::Return(ret) => {
-                                        Expression::from_return_value(ret.clone())
-                                    }
-                                    _ => todo!("Value MUST be returned..."),
-                                },
-
-                                None => Expression::Empty,
-                            }
-                        },
-                    ))
-                }
-                // rustpython_parser::ast::Stmt::AsyncFunctionDef(stmt_async_function_def) => todo!(),
-                _ => todo!("Not Implemented Yet"),
-            },
-            None => panic!("Empty Mod Module"),
-        }
-    }
-}
-
 #[derive(Debug)]
 pub struct AST {
+    // AST is for TODO PROCESS AST -> MATHEMATICS
     // imports: Vec<>
     // global_definitions: Vec<Definition>
     //

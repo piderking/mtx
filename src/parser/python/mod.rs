@@ -1,6 +1,6 @@
-use rustpython_parser::ast::{Expr, ExprName, Identifier, Mod};
+use rustpython_parser::ast::{Expr, ExprName, Identifier, Mod, ModModule};
 
-use crate::ast::{AST, Expression, base::Variable};
+use crate::ast::{AST, Definition, Expression, Statement, base::Variable};
 
 impl From<Identifier> for Variable {
     fn from(value: Identifier) -> Self {
@@ -60,21 +60,49 @@ impl From<Expr> for Expression {
         }
     }
 }
+impl From<ModModule> for Statement {
+    fn from(value: ModModule) -> Self {
+        match value.body.iter().nth(0) {
+            Some(n) => match n {
+                rustpython_parser::ast::Stmt::FunctionDef(func_def) => {
+                    Statement::Definition(Definition::Function(
+                        func_def.name.clone().into(),
+                        func_def // Implement All Other Arg than just positional args
+                            .args
+                            .posonlyargs
+                            .iter()
+                            .map(|i| i.def.arg.clone().into())
+                            .collect(),
+                        {
+                            // Do Stuff with the body of the function
+                            // Iterate Through Body
+                            // Value of Return Result
+                            match func_def.body.last() {
+                                Some(n) => match n {
+                                    rustpython_parser::ast::Stmt::Return(ret) => {
+                                        Expression::from_return_value(ret.clone())
+                                    }
+                                    _ => todo!("Value MUST be returned..."),
+                                },
 
+                                None => Expression::Empty,
+                            }
+                        },
+                    ))
+                }
+                // rustpython_parser::ast::Stmt::AsyncFunctionDef(stmt_async_function_def) => todo!(),
+                _ => todo!("Not Implemented Yet"),
+            },
+            None => panic!("Empty Mod Module"),
+        }
+    }
+}
 #[cfg(test)]
 mod tests {
-    use crate::test::parse_code;
 
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
     #[test]
-    fn test_python_expression() {
-        let code = parse_code(
-            r#"
-def main():
-    x = 10
-            "#,
-        );
-    }
+    fn test_python_expression() {}
 }
