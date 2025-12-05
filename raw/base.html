@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Viewer Document</title>
+</head>
+<body>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <div id="app">
+
+        <!--Writer Will Generate HTML File, replace this part of the file with the actual content-->
+        CONTENT
+
+        <!--EXAMPLE-->
+        <div id="5" class="container">
+            <!--HyperLinks to Here-->
+            <div id="example" class="equation">
+
+                <svg></svg>
+            </div>
+
+            <!--Nested Containers-->
+            <div id="1" class="container">
+                <!--Id = name of section (capitalize) seperate by _ for spaces -->
+                <!--Class = type:
+                container
+                |   problem
+                |   | + step (can be parent or on same level) 
+                |   |   equation
+                |   |   note
+                |   |   solution
+                |   |   link (is a "clone" of another section (controlled by id))
+                -->
+                <div id="example" class="equation">
+
+                    <svg></svg>
+                </div>
+                
+            </div>
+
+        </div>
+        
+    </div>
+
+    <script>
+    // Reactive Parts Closing etc....
+    const { createApp, ref } = Vue
+
+    createApp({
+        setup() {
+        const message = ref('Hello vue!')
+        return {
+            message
+        }
+        }
+    }).mount('#app')
+    </script>
+</body>
+</html>

@@ -8,8 +8,8 @@ use std::fmt::Debug;
 use tokio_util::io::ReaderStream;
 
 use crate::{
-    ast::base::{Ident, Value, Variable},
-    symbols::{self, Symbols},
+    ast::base::{Ident, Value},
+    symbols::{Symbols},
 };
 
 // Mathematical Functions
@@ -43,7 +43,7 @@ pub enum Expression {
     Opperations(Box<dyn Opperation>),
     // User Definied Functions
     FunctionCall(Ident, Vec<Expression>),
-    VariableRef(Variable),
+    VariableRef(Ident),
     Constant(Value),
     Empty, // 0
 }
@@ -63,7 +63,7 @@ pub enum System {
 
 #[derive(Debug)]
 pub enum Definition {
-    Function(Ident, Vec<Variable>, Expression),
+    Function(Ident, Vec<Ident>, Expression),
     Constant(Ident, Expression),
 }
 

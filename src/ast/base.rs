@@ -1,6 +1,6 @@
 use rustpython_parser::ast::{ExprName, Identifier};
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Ident {
     pub inner: String,
 }
@@ -15,16 +15,6 @@ impl From<Identifier> for Ident {
         Self {
             inner: String::from(value.as_str()),
         }
-    }
-}
-#[derive(Debug)]
-pub struct Variable {
-    pub inner: String,
-}
-
-impl From<String> for Variable {
-    fn from(value: String) -> Self {
-        Self { inner: value }
     }
 }
 
