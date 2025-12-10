@@ -1,4 +1,4 @@
-use nom::{IResult, Parser, branch::alt, bytes::complete::tag, character::complete::{alpha0, alpha1, char, multispace0}, combinator::{all_consuming, map, map_res}, error::context, multi::{many_till, separated_list1}, number::complete::f32, sequence::{delimited, pair, tuple}};
+use nom::{IResult, Parser, branch::alt, bytes::complete::tag, character::complete::{alpha0, alpha1, char, digit1, multispace0}, combinator::{all_consuming, map, map_res, peek, recognize}, error::context, multi::{many_till, many0, separated_list1}, number::complete::f32, sequence::{delimited, pair, preceded, tuple}};
 
 use crate::{ast::{Add, Expression, Multi, Opperation, base::Ident}, parser::math::{value::{parse_float_value, parse_value}, whitespace::ws}, symbols::Symbols};
 
@@ -25,50 +25,73 @@ pub fn parse_expression(input: &str) -> IResult<&str, Expression> {
 
 
 
-pub fn parse_adition(input: &str) -> IResult<&str, Add> {
-    // Seperate Terms by + 
-    //separated_list1(tag("+"), alt( (parse_terms, parse_term)  )).parse(input)
-    todo!("")
+// ATOMS - lowest level (no operators)
+pub fn parse_atom(input: &str) -> IResult<&str, Expression> {
+    preceded(
+        multispace0,
+        alt((
+            parse_parens,
+            map(parse_ident, Expression::VariableRef),
+            map(parse_value, Expression::Constant),
+        ))
+    ).parse(input)
 }
 
+pub fn parse_multiplication(input: &str) -> IResult<&str, Expression> {
+    let (input, first) = parse_atom(input)?;
+    let (input, rest) = many0(
+        alt((
+            // Explicit multiplication with *
+            preceded(ws(tag(Symbols::Multiplication.as_str())), parse_atom),
+            // Implicit: followed by (, identifier, or digit
+            preceded(
+                peek(alt((
+                    tag("("),
+                    recognize(alpha1),     // Variables like x, y
+                    recognize(digit1),     // Numbers like 1, 23
+                ))), 
+                parse_atom
+            ),
+        ))
+    ).parse(input)?;
+    
+    if rest.is_empty() {
+        Ok((input, first))
+    } else {
+        let mut terms = vec![first];
+        terms.extend(rest);
+        Ok((input, Expression::Opperations(Box::new(Multi{terms}))))
+    }
+}
+// ADDITION - lower precedence
+pub fn parse_addition(input: &str) -> IResult<&str, Expression> {
+    let (input, first) = parse_multiplication(input)?;
+    let (input, rest) = many0(preceded(ws(tag(Symbols::Addition.as_str())), parse_multiplication)).parse(input)?;
+    
+    if rest.is_empty() {
+        Ok((input, first))
+    } else {
+        let mut terms = vec![first];
+        terms.extend(rest);
+        Ok((input, Expression::Opperations(Box::new(Add{terms}))))
+    }
+}
+
+// PARENTHESES - recursion point
 pub fn parse_parens(input: &str) -> IResult<&str, Expression> {
     delimited(
-        tag("("),
-        ws(parse_term), // Handle whitespace
-        tag(")")
+        ws(tag("(")),
+        parse_addition,  // Goes back to top-level expression
+        ws(tag(")"))
     ).parse(input)
-    
 }
 
-pub fn parse_term (input: &str) -> IResult<&str, Expression> {
-    alt((
-        // Parse Variable and Constants First (SO DOESN'T INFINITE LOOP) 
-        // Parse Variable
-        map(parse_ident, Expression::VariableRef),
-        // Parse Constants Last
-        map(parse_value, |f| {
-            println!("Parsed constant: {:?}", f);
-            Expression::Constant(f)
-        }),
-
-        // Parse Parenthesis First 
-        parse_parens,
-
-        // Parse Multiplication (Sign)
-
-        
-
-        // Parse Addition
-    )).parse(input)
-}
-
-
-    
-
+// TOP-LEVEL ENTRY POINT
 pub fn pexp(input: &str) -> IResult<&str, Expression> {
-    delimited(multispace0, parse_term, multispace0).parse(input)
-    
+    parse_addition(input)
 }
+
+    
 
 
 
@@ -83,10 +106,39 @@ mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
+    #[test]
+    fn test_multipilicaction() {
+        let input = "(a)1+2";
+        let result = pexp(input);
+        println!("{:?}", result);
+        assert!(result.is_ok());
+    }
+    #[test]
+    fn test_nested_addition() {
+        let input = "2(a+2)+2";
+        let (output, result) = pexp(input).expect("msg");
+        println!("{:#?}", result);
+
+        assert_eq!(output.len(), 0)
+    }
+
+    #[test]
+    fn large_group_addition() {
+        let input = "(4+4+1+3)+(a+45)";
+        let result = pexp(input);
+        println!("{:?}", result);
+        assert!(result.is_ok());
+    }
 
     #[test]
     fn test_constant_parens(){
-        let input = "(   123)";
+        let input = "(   (123 )    )";
+        println!("{:?}", pexp(input))
+    }
+
+    #[test]
+    fn test_addition(){
+        let input = "1+(1+2)";
         println!("{:?}", pexp(input))
     }
     #[test]
