@@ -18,6 +18,7 @@ where
     Self: Debug,
 {
     fn stringify(&self) -> String;
+    fn ty(&self) -> &str;
 }
 
 // Hold the Values
@@ -31,6 +32,22 @@ pub struct Multi {
     pub terms: Vec<Expression>,
 }
 
+
+
+// Hold the Values
+#[derive(Debug)]
+pub struct Root {
+    pub degree: Expression,
+    pub radicand: Expression,
+    
+}
+
+#[derive(Debug)]
+pub struct Exp {
+    pub exponent: Expression,
+    pub base: Expression,
+    
+}
 
 // Hold the Values
 #[derive(Debug)]
@@ -51,6 +68,10 @@ impl Opperation for Add {
             .collect::<Vec<_>>()
             .join(format!(" {} ", Symbols::Addition.as_str()).as_str())
     }
+    
+    fn ty(&self) -> &str {
+        "add"
+    }
 }
 
 impl Opperation for Multi {
@@ -60,6 +81,27 @@ impl Opperation for Multi {
             .map(|v| v.to_string())
             .collect::<Vec<_>>()
             .join(format!(" {} ", Symbols::Multiplication.as_str()).as_str())
+    }
+    fn ty(&self) -> &str {
+        "multi"
+    }
+}
+
+impl Opperation for Root {
+    fn stringify(&self) -> String {
+       todo!()
+    }
+    fn ty(&self) -> &str {
+        "root"
+    }
+}
+
+impl Opperation for Exp {
+    fn stringify(&self) -> String {
+        todo!()
+    }
+    fn ty(&self) -> &str {
+        "exp"
     }
 }
 // Root

@@ -1,6 +1,6 @@
-use nom::{IResult, Parser, branch::alt, bytes::complete::tag, character::complete::{alpha0, alpha1, char, digit1, multispace0}, combinator::{all_consuming, map, map_res, peek, recognize}, error::context, multi::{many_till, many0, separated_list1}, number::complete::f32, sequence::{delimited, pair, preceded, tuple}};
+use nom::{IResult, Parser, branch::alt, bytes::complete::tag, character::complete::{alpha0, alpha1, char, digit1, multispace0}, combinator::{all_consuming, map, map_res, peek, recognize}, error::context, multi::{many_till, many0, separated_list1}, number::complete::f32, sequence::{delimited, pair, preceded, separated_pair, tuple}};
 
-use crate::{ast::{Add, Expression, Multi, Opperation, base::Ident}, parser::math::{value::{parse_float_value, parse_value}, whitespace::ws}, symbols::Symbols};
+use crate::{ast::{Add, Exp, Expression, Multi, Opperation, Root, base::Ident}, parser::math::{value::{parse_float_value, parse_value}, whitespace::ws}, symbols::Symbols};
 
 
 // Variable = x, y, z
@@ -24,12 +24,79 @@ pub fn parse_expression(input: &str) -> IResult<&str, Expression> {
 }
 
 
+// Exponentiation (highest precedence, right-associative)
+pub fn parse_exponentiation(input: &str) -> IResult<&str, Expression> {
+    let (input, base) = parse_atom(input)?;
+    
+    // Check if there's a ^ operator
+    let result = preceded(ws(tag("^")), parse_exponentiation).parse(input);
+    
+    match result {
+        Ok((input, exponent)) => {
+            // Right-associative: 2^3^4 = 2^(3^4)
+            Ok((input, Expression::Opperations(Box::new(Exp{
+                base,
+                exponent
+            }))))
+        }
+        Err(_) => {
+            // No exponent, just return the base
+            Ok((input, base))
+        }
+    }
+}
+
+pub fn parse_root(input: &str) -> IResult<&str, Expression> {
+    alt((
+        // root(n, x) - nth root
+        delimited(
+            (ws(tag("root")), ws(tag("("))),
+            map(
+                separated_pair(
+                    parse_addition,      // First arg: n (the root degree)
+                    ws(tag(",")),
+                    parse_addition       // Second arg: x (the radicand)
+                ),
+                |(n, x)| {
+                    Expression::Opperations(Box::new(Root{
+                        degree: n,
+                        radicand: x
+                    }))
+                }
+            ),
+            ws(tag(")"))
+        ),
+        // sqrt(x) - square root (syntactic sugar for root(2, x))
+        delimited(
+            (ws(tag("sqrt")), ws(tag("("))),
+            map(parse_addition, |arg| {
+                Expression::Opperations(Box::new(Root{
+                    degree: Expression::Constant(2.0.into()),
+                    radicand: arg
+                }))
+            }),
+            ws(tag(")"))
+        ),
+        // √x - unicode square root
+        preceded(
+            ws(tag("√")),
+            map(parse_atom, |arg| {
+                Expression::Opperations(Box::new(Root{
+                    degree: Expression::Constant(2.0.into()),
+                    radicand: arg
+                }))
+            })
+        ),
+    )).parse(input)
+}
+
 
 // ATOMS - lowest level (no operators)
 pub fn parse_atom(input: &str) -> IResult<&str, Expression> {
     preceded(
         multispace0,
         alt((
+            parse_root,
             parse_parens,
             map(parse_ident, Expression::VariableRef),
             map(parse_value, Expression::Constant),
@@ -38,11 +105,11 @@ pub fn parse_atom(input: &str) -> IResult<&str, Expression> {
 }
 
 pub fn parse_multiplication(input: &str) -> IResult<&str, Expression> {
-    let (input, first) = parse_atom(input)?;
+    let (input, first) = parse_exponentiation(input)?;
     let (input, rest) = many0(
         alt((
             // Explicit multiplication with *
-            preceded(ws(tag(Symbols::Multiplication.as_str())), parse_atom),
+            preceded(ws(tag(Symbols::Multiplication.as_str())), parse_exponentiation),
             // Implicit: followed by (, identifier, or digit
             preceded(
                 peek(alt((
@@ -97,7 +164,24 @@ pub fn pexp(input: &str) -> IResult<&str, Expression> {
 
 
 
-    
+macro_rules! test_expression {
+    ($e:expr) => {
+        let res = crate::parser::math::expression::pexp($e);
+        
+        match res {
+            Ok((remaining, expr)) => {
+                if remaining.is_empty() {
+                    println!("✓ {} => {:?}", $e, expr);
+                } else {
+                    println!("⚠ {} => {:?} (unparsed: {:?})", $e, expr, remaining);
+                }
+            }
+            Err(err) => {
+                println!("✗ {} => Error: {:?}", $e, err);
+            }
+        }
+    };
+}
 
 
 
@@ -105,6 +189,19 @@ pub fn pexp(input: &str) -> IResult<&str, Expression> {
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
+
+
+    #[test]
+    fn test_basic_exp() {
+        test_expression!("3^(x+3)");
+    }
+
+
+    #[test]
+    fn test_basic_root() {
+        test_expression!("root(3, x)");
+    }
+
 
     #[test]
     fn test_multipilicaction() {
