@@ -1,10 +1,9 @@
 use crate::ast::{
-    Definition, Expression, Statement,
-    base::{Ident, Value},
+    Comment, Definition, Expression, Statement, base::{Ident, Value}
 };
 
 // For Parsing the Files into our AST
-const FILE_TYPE: &'static str = ".m";
+const FILE_TYPE: &'static str = ".mtx";
 
 // Implemement ToString For Them All In This Directory
 
@@ -64,11 +63,20 @@ impl ToString for Definition {
     }
 }
 
+impl ToString for Comment {
+    fn to_string(&self) -> String {
+        match self {
+            Comment::Single(n) => n.clone(),
+            Comment::Multi(n) => n.clone(),
+        }
+    }
+}
 impl ToString for Statement {
     fn to_string(&self) -> String {
         match self {
             Statement::Definition(definition) => definition.to_string(),
             Statement::Expression(expression) => expression.to_string(),
+            Statement::Comment(comment) => comment.to_string(),
             Statement::System(system) => {
                 todo!("When used as a compiled language... Not implemented now...")
             }

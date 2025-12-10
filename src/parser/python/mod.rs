@@ -1,6 +1,6 @@
 use rustpython_parser::ast::{Expr, ExprName, Identifier, Mod, ModModule};
 
-use crate::ast::{AST, Definition, Expression, Statement, base::Variable};
+use crate::ast::{AST, Definition, Expression, Statement,};
 
 impl From<Identifier> for Variable {
     fn from(value: Identifier) -> Self {
@@ -53,7 +53,7 @@ impl From<Expr> for Expression {
             Expr::Attribute(expr_attribute) => todo!(),
             Expr::Subscript(expr_subscript) => todo!(),
             Expr::Starred(expr_starred) => todo!(),
-            Expr::Name(expr_name) => Expression::VariableRef(expr_name.into()),
+            Expr::Name(expr_name) => todo!(),
             Expr::List(expr_list) => todo!(),
             Expr::Tuple(expr_tuple) => todo!(),
             Expr::Slice(expr_slice) => todo!(),

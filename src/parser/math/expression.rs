@@ -1,6 +1,6 @@
-use nom::{IResult, Parser, bytes::complete::tag, character::complete::alpha1, combinator::map, multi::{many_till, separated_list1}, sequence::{delimited, tuple}};
+use nom::{IResult, Parser, branch::alt, bytes::complete::tag, character::complete::{alpha0, alpha1, char, multispace0}, combinator::{all_consuming, map, map_res}, error::context, multi::{many_till, separated_list1}, number::complete::f32, sequence::{delimited, pair, tuple}};
 
-use crate::{ast::{Expression, base::{Ident}}, parser::math::value::parse_float_value};
+use crate::{ast::{Add, Expression, Multi, Opperation, base::Ident}, parser::math::{value::{parse_float_value, parse_value}, whitespace::ws}, symbols::Symbols};
 
 
 // Variable = x, y, z
@@ -19,58 +19,86 @@ pub fn parse_ident(input: &str) -> IResult<&str, Ident> {
     }
 }
 
-
-
-pub fn parse_opperations(input: &str) -> IResult<&str, Expression> {
+pub fn parse_expression(input: &str) -> IResult<&str, Expression> {
     todo!()
 }
 
 
 
-pub fn parse_direct_functioncall(input: &str) -> IResult<&str, (Ident, Vec<Expression>)> {
-    (parse_ident, delimited(tag("("), separated_list1(tag(","), parse_section), tag(")"))).parse(input)
-    // Function Call = F(x)
+pub fn parse_adition(input: &str) -> IResult<&str, Add> {
+    // Seperate Terms by + 
+    //separated_list1(tag("+"), alt( (parse_terms, parse_term)  )).parse(input)
+    todo!("")
 }
 
-
-pub fn parse_variableref(input: &str) -> IResult<&str, Expression> {
-    // parse for function calls and then for variables
-    map(alpha1, |f: &str| Expression::VariableRef(f.to_string().into())).parse(input)
-}
-
-
-pub fn parse_constant(input: &str) -> IResult<&str, Expression> {
-    map(parse_float_value, |f| Expression::Constant(f)).parse(input)
-}
-
-pub fn parse_empty(input: &str) -> IResult<&str, Expression> {
-// Parse Expression Here
-    if input.is_empty(){
-        return Ok((input, Expression::Empty))
-    }
-    // was empty when it shouldn't of been
-    Err(nom::Err::Incomplete(nom::Needed::Unknown) )
-
-}
-
-// Expression
-pub fn parse_section(input: &str) -> IResult<&str, Expression> {
+pub fn parse_parens(input: &str) -> IResult<&str, Expression> {
+    delimited(
+        tag("("),
+        ws(parse_term), // Handle whitespace
+        tag(")")
+    ).parse(input)
     
-    // pull pattern
-    //multiple different patterns into different variations of enum nom rust
+}
+
+pub fn parse_term (input: &str) -> IResult<&str, Expression> {
+    alt((
+        // Parse Variable and Constants First (SO DOESN'T INFINITE LOOP) 
+        // Parse Variable
+        map(parse_ident, Expression::VariableRef),
+        // Parse Constants Last
+        map(parse_value, |f| {
+            println!("Parsed constant: {:?}", f);
+            Expression::Constant(f)
+        }),
+
+        // Parse Parenthesis First 
+        parse_parens,
+
+        // Parse Multiplication (Sign)
+
+        
+
+        // Parse Addition
+    )).parse(input)
+}
+
+
     
 
-    todo!()
+pub fn pexp(input: &str) -> IResult<&str, Expression> {
+    delimited(multispace0, parse_term, multispace0).parse(input)
+    
 }
+
+
+
+
+
+    
+
+
+
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
+
+    #[test]
+    fn test_constant_parens(){
+        let input = "(   123)";
+        println!("{:?}", pexp(input))
+    }
+    #[test]
+    fn test_constant(){
+        let input = "1";
+        println!("{:?}", pexp(input))
+    }
     
     #[test]
     fn parse_ident_name() {
         assert_eq!(parse_ident("a").unwrap().1, Ident{ inner: format!("a")} )
     }
+   
     
 }

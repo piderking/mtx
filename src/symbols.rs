@@ -1,6 +1,9 @@
 #[derive(Clone, PartialEq)]
 pub enum Symbols {
     Addition,
+    Subtraction,
+    Division,
+    Multiplication,
     Summation,
 }
 
@@ -11,9 +14,21 @@ pub(crate) struct Definition {
     pub(crate) optional_value: Option<&'static str>,
 }
 
-const DEFINITIONS: [Definition; 1] = [Definition {
+const DEFINITIONS: [Definition; 4] = [Definition {
     id: Symbols::Addition,
     value: "+",
+    optional_value: Option::None,
+}, Definition {
+    id: Symbols::Subtraction,
+    value: "-",
+    optional_value: Option::None,
+}, Definition {
+    id: Symbols::Division,
+    value: "/",
+    optional_value: Option::None,
+}, Definition {
+    id: Symbols::Multiplication,
+    value: "*",
     optional_value: Option::None,
 }];
 

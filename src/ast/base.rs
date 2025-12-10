@@ -35,6 +35,12 @@ impl From<f32> for Value {
         Value::Number(value)
     }
 }
+
+impl From<f64> for Value {
+    fn from(value: f64) -> Value {
+        Value::Number(value as f32)
+    }
+}
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.

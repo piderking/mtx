@@ -20,30 +20,73 @@ where
     fn stringify(&self) -> String;
 }
 
+/*
+
+
+
+
+Opperations:
+- Power
+In THIS ORDER
+E ^ E
+- Root
+root(E, E)
+- Multiplication:
+E * E
+E E
+- Division
+E / E
+- Addition
+E + E
+- Subtraction
+E - E
+- Priority
+( E ) 
+
+Multiplication
+ 5 x
+
+
+
+*/
+#[derive(Debug)]
+pub struct Exponential {
+    pub base: Expression,
+    pub power: Expression
+}
+
+#[derive(Debug)]
+pub struct Root {
+    pub base: Expression,
+    pub root: Expression
+}
+
+#[derive(Debug)]
+pub struct Multiplication {
+    pub terms: Vec<Expression>,
+}
+#[derive(Debug)]
+pub struct Division {
+    pub first: Expression,
+    pub second: Expression
+}
+
 // Hold the Values
 #[derive(Debug)]
 pub struct Add {
     pub terms: Vec<Expression>,
 }
-// Hold the Values
 #[derive(Debug)]
-pub struct Multi {
-    pub terms: Vec<Expression>,
-}
-
-
-// Hold the Values
-#[derive(Debug)]
-pub struct Sub {
+pub struct Subtract {
     pub first: Expression,
     pub second: Expression
 }
-#[derive(Debug)]
-pub struct Div {
-    pub first: Expression,
-    pub second: Expression}
 
-impl Opperation for Add {
+
+
+
+
+impl Opperation for Multiplication {
     fn stringify(&self) -> String {
         self.terms
             .iter()
@@ -53,13 +96,15 @@ impl Opperation for Add {
     }
 }
 
-impl Opperation for Multi {
+
+
+impl Opperation for Add {
     fn stringify(&self) -> String {
         self.terms
             .iter()
             .map(|v| v.to_string())
             .collect::<Vec<_>>()
-            .join(format!(" {} ", Symbols::Multiplication.as_str()).as_str())
+            .join(format!(" {} ", Symbols::Addition.as_str()).as_str())
     }
 }
 // Root
@@ -76,6 +121,14 @@ pub enum Expression {
     Empty, // 0
 }
 
+impl Expression {
+    pub fn from_return_value(ret: StmtReturn) -> Expression {
+        match ret.value {
+            Option::Some(n) => Expression::from(*n),
+            Option::None => Expression::Empty,
+        }
+    }
+}
 #[derive(Debug)]
 pub enum System {
     Print(Expression),
@@ -86,10 +139,15 @@ pub enum Definition {
     Function(Ident, Vec<Ident>, Expression),
     Constant(Ident, Expression),
 }
+
 #[derive(Debug)]
 pub enum Comment {
+    // Single Line
     Single(String),
-    Multi(String),
+    // Multi Line 
+    // HAS ESCAPE CHARACTERS IN IT
+    // MARKDOWN SUPPORT
+    Multi(String)
 }
 
 #[derive(Debug)]
@@ -101,12 +159,12 @@ pub enum Statement {
     // Constant Definitions
     // s =
     // Function Definitions
-    // f(x)
+    // f(x) = 
     Definition(Definition),
 
-    // Print
+    // f(x+c)
     Expression(Expression),
-    
+
     Comment(Comment),
     // System Commands
     System(System),

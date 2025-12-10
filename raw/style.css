@@ -1,0 +1,120 @@
+:root{
+  --gutter:14px;               /* left margin = prompt area */
+  --min-cell:320px;            /* minimum width before h-scroll */
+  --bar-h:28px;                /* height of the draggable bar */
+  --accent:#f37626;            /* Jupyter orange */
+  --test: rgba(0, 20, 200, .1)
+}
+
+body{
+  margin:0;
+  font-family:system-ui, monospace;
+  background:#fafafa;
+  display:flex;                /* whole page column */
+  flex-direction:column;
+  /*height:100vh;*/
+}
+
+.notebook{                     /* scrollable list of cells */
+  flex:1 1 auto;
+  overflow:auto;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  padding:6px;
+  margin: 6px;
+
+
+  /* Test Settings */
+  background-color: var(--test);
+  
+}
+
+.container{                         /* single flex row: [prompt | content] */
+  display:flex;
+  min-width:var(--min-cell);
+  
+  border:1px solid #e0e0e0;
+  border-radius:4px;
+  overflow:hidden;
+
+  background-color: var(--test);
+
+}
+
+
+.gutter{                       /* left gutter */
+  width:var(--gutter);
+  writing-mode:vertical-rl;
+  text-orientation:mixed;
+  font-size:11px;
+  color:#777;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  cursor:pointer;
+  user-select:none;
+
+  background-color: var(--test);
+
+}
+
+.problem{                      /* actual cell body */
+  flex:1 1 auto;
+  padding:6px 8px;
+  min-height:60px;
+  white-space:pre-wrap;
+  overflow-x:auto;
+  
+}
+/* ---------- minimised state ---------- */
+.problem.min .content{ display:none; }
+.problem.min{ min-height:var(--bar-h); }
+
+/* ====== Snippet Styles ====== */
+.snippet {
+  margin-bottom: 12px;
+  font-family: system-ui, monospace;
+}
+
+/* MTX: plain math input */
+.snippet.mtx {
+  font-style: italic;
+  color: #222;
+  padding: 6px 10px;
+  background: #f4f4f4;
+  border-left: 3px solid #554768;
+  font-size: 1.05em;
+}
+
+/* Math: rendered SVG */
+.snippet.math {
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.snippet.math svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Python: code block */
+.snippet.python pre {
+  margin: 0;
+  padding: 6px 10px;
+  background: #f6f8fa;
+  border-left: 3px solid #caa43b;
+  overflow-x: auto;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+.snippet.python code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  color: #333;
+}
