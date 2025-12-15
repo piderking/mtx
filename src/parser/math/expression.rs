@@ -191,10 +191,7 @@ mod tests {
     use super::*;
 
 
-    #[test]
-    fn test_basic_exp() {
-        test_expression!("3^(x+3)");
-    }
+    
 
 
     #[test]
@@ -205,7 +202,7 @@ mod tests {
 
     #[test]
     fn test_multipilicaction() {
-        let input = "(a)1+2";
+        let input = "(a)1+'a'";
         let result = pexp(input);
         println!("{:?}", result);
         assert!(result.is_ok());

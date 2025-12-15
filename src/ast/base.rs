@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use rustpython_parser::ast::{ExprName, Identifier};
 
 #[derive(Debug, Eq, PartialEq)]
@@ -18,11 +20,21 @@ impl From<Identifier> for Ident {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(PartialEq)]
 pub enum Value {
     // Decimal Value for Char
     Char(i32),
     Number(f32),
+}
+
+
+impl Debug for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Char(arg0) => f.debug_tuple("Char").field(&format!("{} as {}", (char::from_u32(*arg0 as u32).unwrap()), arg0)).finish(),
+            Self::Number(arg0) => f.debug_tuple("Number").field(arg0).finish(),
+        }
+    }
 }
 
 impl From<char> for Value {

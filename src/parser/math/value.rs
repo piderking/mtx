@@ -43,7 +43,7 @@ pub fn parse_float_value(input: &str) -> IResult<&str, Value> {
 
 pub fn parse_value(input: &str) -> IResult<&str, Value>{
     //alt((parse_float_value, parse_char_value)).parse(input)
-    parse_float_value(input)
+    alt((parse_float_value, parse_char_value)).parse(input)
     
 }
 #[cfg(test)]
