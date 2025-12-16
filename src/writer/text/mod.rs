@@ -86,9 +86,9 @@ impl ToString for Statement {
             Statement::Definition(definition) => definition.to_string(),
             Statement::Expression(expression) => expression.to_string(),
             Statement::Comment(comment) => comment.to_string(),
-            Statement::System(system) => {
-                todo!("When used as a compiled language... Not implemented now...")
-            }
+            // Statement::System(system) => {
+            //     todo!("When used as a compiled language... Not implemented now...")
+            // }
         }
     }
 }

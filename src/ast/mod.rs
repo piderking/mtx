@@ -176,7 +176,8 @@ pub enum Statement {
     
     Comment(Comment),
     // System Commands
-    System(System),
+    // TODO move system calls to expression
+    // System(System),
 }
 
 #[derive(Debug)]

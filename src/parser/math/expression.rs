@@ -256,7 +256,7 @@ mod tests {
     }
     #[test]
     fn test_advanced() {
-        test_expression!("");
+        test_expression!("[ [2] , [2] ]");
     }
     #[test]
     fn test_basic_list() {
