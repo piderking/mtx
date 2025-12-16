@@ -58,7 +58,15 @@ pub struct Sub {
 #[derive(Debug)]
 pub struct Div {
     pub first: Expression,
-    pub second: Expression}
+    pub second: Expression
+}
+
+#[derive(Debug)]
+pub struct Index {
+    pub base: Expression,
+    pub index: Expression
+}
+
 
 impl Opperation for Add {
     fn stringify(&self) -> String {
@@ -96,6 +104,15 @@ impl Opperation for Root {
     }
 }
 
+impl Opperation for Index {
+    fn stringify(&self) -> String {
+       format!("{}_{}", self.base.to_string(), self.index.to_string() )
+    }
+    fn ty(&self) -> &str {
+        "index"
+    }
+}
+
 impl Opperation for Exp {
     fn stringify(&self) -> String {
         todo!()
@@ -111,8 +128,15 @@ pub enum Expression {
     // Mathematic Opperations
     // Advanced Mathematical Opperations
     Opperations(Box<dyn Opperation>),
+    
+    List(Vec<Expression>),
+    // TODO Comparisons: X > Y
+    
+
+
     // User Definied Functions
     FunctionCall(Ident, Vec<Expression>),
+    
     VariableRef(Ident),
     Constant(Value),
     Empty, // 0
@@ -125,6 +149,7 @@ pub enum System {
 
 #[derive(Debug)]
 pub enum Definition {
+    // 
     Function(Ident, Vec<Ident>, Expression),
     Constant(Ident, Expression),
 }

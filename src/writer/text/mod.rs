@@ -1,3 +1,5 @@
+use std::{char, fmt::format};
+
 use crate::ast::{
     Comment, Definition, Expression, Statement, base::{Ident, Value}
 };
@@ -17,7 +19,7 @@ impl ToString for Ident {
 impl ToString for Value {
     fn to_string(&self) -> String {
         match self {
-            Value::Char(n) => n.to_string(),
+            Value::Char(n) => format!("'{}'", char::from_u32(*n as u32).unwrap() ),
             Value::Number(n) => n.to_string(),
         }
     }
@@ -37,6 +39,13 @@ impl ToString for Expression {
             ),
             Expression::VariableRef(var) => var.to_string(),
             Expression::Constant(value) => value.to_string(),
+            Expression::List(exp) => format!(
+                "{}",
+                exp.iter()
+                    .map(|f| f.to_string())
+                    .collect::<Vec<_>>()
+                    .join(",")
+            ),
             Expression::Empty => stringify!().to_string(),
         }
     }
