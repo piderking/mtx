@@ -1,6 +1,6 @@
 use nom::{IResult, Parser, branch::alt, bytes::complete::tag, character::complete::{alpha0, alpha1, char, digit1, multispace0}, combinator::{all_consuming, map, map_res, peek, recognize}, error::context, multi::{many_till, many0, separated_list1}, number::complete::f32, sequence::{delimited, pair, preceded, separated_pair, tuple}};
 
-use crate::{ast::{Add, Exp, Expression, Index, Multi, Opperation, Root, base::Ident}, parser::math::{value::{parse_float_value, parse_value}, whitespace::ws}, symbols::Symbols};
+use crate::{ast::{expressions::Expression, opperations::{Add, Exp, Index, Multi, Opperation, Root}, base::Ident}, parser::math::{value::{parse_float_value, parse_value}, whitespace::ws}, symbols::Symbols};
 
 
 // Variable = x, y, z
