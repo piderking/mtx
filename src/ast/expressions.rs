@@ -30,8 +30,3 @@ pub enum Expression {
 }
 
 
-impl ToString for Expression {
-    fn to_string(&self) -> String {
-        todo!()
-    }
-} 

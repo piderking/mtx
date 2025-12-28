@@ -1,7 +1,7 @@
 use std::{char, fmt::format};
 
 use crate::ast::{
-    Comment, Definition, Expression, Statement, base::{Ident, Value}
+    Comment, Definition, Statement, base::{Ident, Value}, expressions::Expression
 };
 
 // For Parsing the Files into our AST
@@ -47,6 +47,7 @@ impl ToString for Expression {
                     .join(",")
             ),
             Expression::Empty => stringify!().to_string(),
+            Expression::System(system) => todo!(),
         }
     }
 }
