@@ -1,25 +1,20 @@
-
-
 pub mod base;
 pub mod expressions;
+pub mod module;
 pub mod opperations;
 pub mod system_func;
 
-use std::fmt::Debug;
 use crate::{
     ast::base::{Ident, Value},
-    symbols::{Symbols},
+    symbols::Symbols,
 };
-
+use std::fmt::Debug;
 
 use expressions::Expression;
 
-
-
-
 #[derive(Debug)]
 pub enum Definition {
-    // 
+    //
     Function(Ident, Vec<Ident>, Expression),
     Constant(Ident, Expression),
 }
@@ -43,7 +38,7 @@ pub enum Statement {
 
     // Print
     Expression(Expression),
-    
+
     Comment(Comment),
     // System Commands
     // TODO move system calls to expression

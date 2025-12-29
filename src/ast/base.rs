@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use rustpython_parser::ast::{ExprName, Identifier};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Ident {
     pub inner: String,
 }
@@ -27,11 +27,17 @@ pub enum Value {
     Number(f32),
 }
 
-
 impl Debug for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Char(arg0) => f.debug_tuple("Char").field(&format!("{} as {}", (char::from_u32(*arg0 as u32).unwrap()), arg0)).finish(),
+            Self::Char(arg0) => f
+                .debug_tuple("Char")
+                .field(&format!(
+                    "{} as {}",
+                    (char::from_u32(*arg0 as u32).unwrap()),
+                    arg0
+                ))
+                .finish(),
             Self::Number(arg0) => f.debug_tuple("Number").field(arg0).finish(),
         }
     }

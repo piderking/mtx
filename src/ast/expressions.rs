@@ -1,11 +1,12 @@
-
-use std::fmt::Debug;
 use crate::{
-    ast::{base::{Ident, Value}, opperations::Opperation, system_func::System},
+    ast::{
+        base::{Ident, Value},
+        opperations::Opperation,
+        system_func::System,
+    },
     symbols::Symbols,
 };
-
-
+use std::fmt::Debug;
 
 #[derive(Debug)]
 pub enum Expression {
@@ -13,10 +14,7 @@ pub enum Expression {
     // Advanced Mathematical Opperations
     Opperations(Box<dyn Opperation>),
 
-
     List(Vec<Expression>),
-    
-
 
     // User Definied Functions
     FunctionCall(Ident, Vec<Expression>),
@@ -28,5 +26,3 @@ pub enum Expression {
     Constant(Value),
     Empty, // 0
 }
-
-
