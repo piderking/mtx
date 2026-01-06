@@ -376,6 +376,12 @@ mod tests {
         test_expression!("x(1)");
         // test_expression!("x_(x+1)");
     }
+
+    #[test]
+    fn test_system_func() {
+        test_expression!("frame(\"data.mtx\")");
+        test_expression!("frame(\"path/to/data.mtx\")");
+    }
     #[test]
     fn test_advanced() {
         test_expression!("[ [2] , [2] ]");

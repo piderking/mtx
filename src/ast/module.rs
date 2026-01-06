@@ -1,11 +1,19 @@
 use crate::ast::Statement;
 
+#[derive(Debug, PartialEq)]
 pub struct Metadata {
     pub author: Option<String>,
     pub author_email: Option<String>,
     pub url: Option<String>,
     pub title: Option<String>,
+    pub is_mod: Option<bool>,
 }
+
+pub enum ParseMode {
+    Module,
+    Frame,
+}
+
 // File Level ("imports and etc....")
 pub enum Module {
     // Entry Point
@@ -16,6 +24,7 @@ pub enum Module {
 
     // Provides MTX Functions
     Module {
+        metadata: Metadata,
         statements: Vec<Statement>,
     },
 
