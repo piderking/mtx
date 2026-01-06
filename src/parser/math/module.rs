@@ -9,7 +9,7 @@ use nom::{
         complete::{is_not, tag},
         take_while1,
     },
-    character::complete::{alpha1, line_ending},
+    character::complete::{alpha1, line_ending, multispace0},
     combinator::{map, opt, peek},
     multi::{separated_list0, separated_list1},
     sequence::{delimited, separated_pair},
@@ -24,27 +24,24 @@ fn nothing(input: &str) -> IResult<&str, ()> {
 }
 //metadata comment block
 fn parse_metadata_comment(input: &str) -> IResult<&str, Vec<(&str, &str)>> {
-    alt((
-        delimited(
-            ws(tag("/*")),
-            map(
-                (
-                    separated_list0(
-                        // Changed from separated_list1
-                        comment_ending,
-                        map(
-                            (is_not(":"), ws(tag(":")), is_not(";\n*")),
-                            |(key, _, value)| (key, value),
-                        ),
+    delimited(
+        ws(tag("/*")),
+        map(
+            (
+                separated_list0(
+                    // Changed from separated_list1
+                    comment_ending,
+                    map(
+                        (is_not(":"), ws(tag(":")), is_not(";\n*")),
+                        |(key, _, value)| (key, value),
                     ),
-                    opt(comment_ending), // Allow optional trailing semicolon
                 ),
-                |(list, _)| list,
+                opt(comment_ending), // Allow optional trailing semicolon
             ),
-            ws(tag("*/")),
+            |(list, _)| list,
         ),
-        map(nothing, |_| Vec::new()),
-    ))
+        ws(tag("*/")),
+    )
     .parse(input)
 }
 
@@ -55,7 +52,6 @@ pub fn parse_metadata(input: &str) -> IResult<&str, Metadata> {
             author_email: None,
             url: None,
             title: None,
-            is_mod: None,
         };
 
         for (key, value) in pairs {
@@ -76,11 +72,18 @@ pub fn parse_metadata(input: &str) -> IResult<&str, Metadata> {
 pub fn parse_module(input: &str, is_entry: bool, mode: ParseMode) -> IResult<&str, Module> {
     map(
         (
-            parse_metadata,
-            // Module Seperator: \n
-            separated_list0(line_ending, parse_statement),
+            opt(parse_metadata), // Make metadata optional
+            multispace0,         // Consume any whitespace/newlines between metadata and statements
+            separated_list1(line_ending, parse_statement),
         ),
-        |(metadata, statements)| {
+        |(metadata, _, statements)| {
+            let metadata = metadata.unwrap_or(Metadata {
+                author: None,
+                author_email: None,
+                url: None,
+                title: None,
+            });
+
             if is_entry {
                 Module::Entry {
                     metadata,
@@ -102,9 +105,18 @@ pub fn parse_module(input: &str, is_entry: bool, mode: ParseMode) -> IResult<&st
     )
     .parse(input)
 }
+
 #[cfg(test)]
 mod tests {
 
+    #[test]
+    fn test_parse_module() {
+        let input = "x
+d
+            ";
+        let (_, metadata) = parse_module(input, true, ParseMode::Frame).unwrap();
+        println!("{:?}", metadata)
+    }
     #[test]
     fn test_parse_metadata_empty() {
         let input = "";
@@ -115,7 +127,6 @@ mod tests {
                 author_email: Option::None,
                 url: Option::None,
                 title: Option::None,
-                is_mod: Option::None
             },
             metadata
         )
@@ -135,7 +146,6 @@ mod tests {
                 author_email: Some("piderking8@gmail.com".to_string()),
                 url: Some("https://github.com/piderking/mtx".to_string()),
                 title: Some("MTX Example".to_string()),
-                is_mod: Option::None
             },
             metadata
         )

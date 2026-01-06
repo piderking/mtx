@@ -6,7 +6,6 @@ pub struct Metadata {
     pub author_email: Option<String>,
     pub url: Option<String>,
     pub title: Option<String>,
-    pub is_mod: Option<bool>,
 }
 
 pub enum ParseMode {
@@ -15,6 +14,7 @@ pub enum ParseMode {
 }
 
 // File Level ("imports and etc....")
+#[derive(Debug)]
 pub enum Module {
     // Entry Point
     Entry {
