@@ -11,7 +11,7 @@ use nom::{
     },
     character::complete::{alpha1, line_ending, multispace0},
     combinator::{map, opt, peek},
-    multi::{separated_list0, separated_list1},
+    multi::{many0, separated_list0, separated_list1},
     sequence::{delimited, separated_pair},
 };
 
@@ -73,8 +73,8 @@ pub fn parse_module(input: &str, is_entry: bool, mode: ParseMode) -> IResult<&st
     map(
         (
             opt(parse_metadata), // Make metadata optional
-            multispace0,         // Consume any whitespace/newlines between metadata and statements
-            separated_list1(line_ending, parse_statement),
+            many0(line_ending),  // Consume any empty newlines after metadata
+            separated_list1(many0(line_ending), parse_statement),
         ),
         |(metadata, _, statements)| {
             let metadata = metadata.unwrap_or(Metadata {
@@ -106,14 +106,50 @@ pub fn parse_module(input: &str, is_entry: bool, mode: ParseMode) -> IResult<&st
     .parse(input)
 }
 
+use std::fs;
+use std::io::{self, BufRead, BufReader, Read};
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum FileParseError {
+    #[error("the data for key `{0}` is not available")]
+    Redaction(String),
+    #[error("file not found")]
+    NotFound(String),
+    #[error("unknown data store error")]
+    Unknown,
+}
+
+pub fn parse_entry_file(path: &str) -> Result<Module, FileParseError> {
+    // Open the File
+    if let Ok(file) = fs::read_to_string(path) {
+        match parse_module(file.as_str(), true, ParseMode::Frame) {
+            Ok((_, module)) => Ok(module),
+            Err(error) => panic!("{:?}", error),
+        }
+    } else {
+        // Can't Open => File Not Found
+        Err(FileParseError::NotFound(path.to_string()))
+    }
+}
 #[cfg(test)]
 mod tests {
 
     #[test]
+    fn test_parse_file_entry_only() {
+        let path = "./test/1.mtx";
+        let metadata = parse_entry_file(path).expect("Failed...");
+        println!("{:?}", metadata)
+    }
+    #[test]
     fn test_parse_module() {
-        let input = "x
-d
-            ";
+        let input = "
+            /*author: piderking;*/
+
+
+            y
+
+            x+'c'";
         let (_, metadata) = parse_module(input, true, ParseMode::Frame).unwrap();
         println!("{:?}", metadata)
     }

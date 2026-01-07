@@ -2,7 +2,7 @@ use nom::{
     IResult, Parser,
     branch::alt,
     bytes::complete::{is_not, tag, take_until},
-    character::complete::{alpha1, newline},
+    character::complete::{alpha1, multispace0, newline},
     combinator::map,
     multi::separated_list1,
     sequence::{delimited, preceded},
@@ -47,7 +47,7 @@ pub fn parse_definition(input: &str) -> IResult<&str, Definition> {
 }
 
 pub fn parse_single_comment(input: &str) -> IResult<&str, Comment> {
-    let (input, (_, v, _)) = (tag("//"), is_not("\n"), newline).parse(input)?;
+    let (input, (_, _, v, _)) = (tag("//"), multispace0, is_not("\n"), newline).parse(input)?;
     Ok((input, Comment::Single(v.to_string())))
 }
 pub fn parse_multi_comment(input: &str) -> IResult<&str, Comment> {
@@ -112,4 +112,3 @@ mod tests {
         panic_if_err!(res);
     }
 }
-

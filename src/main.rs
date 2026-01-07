@@ -27,7 +27,7 @@ enum Commands {
     /// Build the project without serving
     Build {
         /// Source directory
-        #[arg(default_value = "./src")]
+        #[arg(default_value = "./raw")]
         source: String,
 
         /// Output directory
@@ -37,9 +37,11 @@ enum Commands {
     /// Serve files without hot reload
     Serve {
         /// Directory to serve
-        #[arg(default_value = "./public")]
-        directory: String,
+        #[arg(default_value = "main.mtx")]
+        entry: String,
 
+        #[arg(default_value = "./dist")]
+        dir: String,
         /// Port to listen on
         #[arg(short, long, default_value = "3000")]
         port: u16,
@@ -51,8 +53,11 @@ enum Commands {
     /// Serve files with hot reload enabled
     Watch {
         /// Directory to serve and watch
-        #[arg(default_value = "./public")]
-        directory: String,
+        #[arg(default_value = "main.mtx")]
+        entry: String,
+
+        #[arg(short, long, value_name = "dir", default_value = "./dist")]
+        dir: String,
 
         /// Port to listen on
         #[arg(short, long, default_value = "3000")]
@@ -84,11 +89,13 @@ async fn needs_reload(data: web::Data<Mutex<ReloadStatus>>) -> impl Responder {
     )
 }
 
+async fn build_project(directory: &str, entry_path: &str) -> () {}
+
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     let args = Args::parse();
 
-    let (dir, port, host, reload_enabled) = match args.command {
+    let (entr, build_directory, port, host, reload_enabled) = match args.command {
         Commands::Build { source, output } => {
             println!("🔨 Building project...");
             println!("📂 Source: {}", source);
@@ -98,26 +105,31 @@ async fn main() -> std::io::Result<()> {
             todo!("Build functionality not yet implemented");
         }
         Commands::Serve {
-            directory,
+            entry,
+            dir,
             port,
             host,
-        } => (directory, port, host, false),
+        } => (entry, dir, port, host, false),
         Commands::Watch {
-            directory,
+            entry,
+            dir,
             port,
             host,
-        } => (directory, port, host, true),
+        } => (entry, dir, port, host, true),
     };
 
     let bind_addr = format!("{}:{}", host, port);
 
     println!("🚀 Server running at http://{}:{}", host, port);
-    println!("📁 Serving: {}", std::fs::canonicalize(&dir)?.display());
+    println!(
+        "📁 Serving Static: {}",
+        std::fs::canonicalize(&build_directory)?.display()
+    );
 
     if reload_enabled {
         println!("🔥 Hot reload: ENABLED");
     } else {
-        println!("⚪ Hot reload: disabled");
+        println!("⚪ Hot reload: DISABLED");
     }
 
     let data = web::Data::new(Mutex::new(ReloadStatus {
@@ -127,7 +139,7 @@ async fn main() -> std::io::Result<()> {
 
     // Directory Watcher (only if reload is enabled)
     if reload_enabled {
-        let dir_clone = dir.clone();
+        let dir_clone = build_directory.clone();
         let data_clone = data.clone();
 
         tokio::spawn(async move {
@@ -183,7 +195,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(data.clone())
             .route("/status", web::get().to(needs_reload))
             .service(
-                Files::new("/", &dir)
+                Files::new("/", &build_directory)
                     .show_files_listing() // Optional: displays a directory listing
                     .index_file("index.html") // Optional: sets the default file for the directory
                     .use_last_modified(true), // Optional: uses Last-Modified header

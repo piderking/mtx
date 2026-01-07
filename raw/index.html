@@ -4,12 +4,192 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Viewer Document</title>
-    <link rel="stylesheet" href="style.css" />
-
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .toc-item {
+            transition: background-color 0.2s;
+        }
+        .toc-item:hover {
+            background-color: rgba(75, 85, 99, 0.3);
+        }
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
 </head>
-<body>
-	<p><a href="base.html" >base.html</a></p>
-	<script>
+<body class="bg-gray-900 overflow-hidden">
+    <div class="flex min-h-screen">
+        <!-- Table of Contents Sidebar -->
+        <div id="toc-sidebar" class="w-64 bg-gray-800 border-r border-gray-700 overflow-y-auto no-scrollbar transition-all duration-300">
+            <div class="p-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-200">Contents</h2>
+                    <button onclick="toggleTOC()" class="text-gray-400 hover:text-gray-200 text-xl">
+                        ◀
+                    </button>
+                </div>
+                <nav id="toc" class="space-y-1">
+                    <a href="#container1" class="toc-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-gray-100">
+                        Introduction to Machine Learning
+                    </a>
+                    <a href="#container2" class="toc-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-gray-100">
+                        Mathematical Foundations
+                    </a>
+                    <!-- TOC items will be inserted here -->
+                    <!-- Example structure:
+                    <a href="#section1" class="toc-item block px-3 py-2 rounded text-sm text-gray-300 hover:text-gray-100">
+                        Section 1
+                    </a>
+                    -->
+                </nav>
+            </div>
+        </div>
+
+        <!-- TOC Toggle Button (shown when sidebar is hidden) -->
+        <button id="toc-toggle-btn" onclick="toggleTOC()" class="fixed left-0 top-4 bg-gray-800 border border-gray-700 rounded-r px-2 py-3 text-gray-400 hover:text-gray-200 hover:bg-gray-700 transition-all duration-300 hidden">
+            ▶
+        </button>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col pt-6 min-h-screen bg-gray-900 overflow-y-auto no-scrollbar">
+            <!-- Document Header -->
+            <div class="px-4 mb-6">
+                <div class="bg-gray-800 rounded p-6 border border-gray-700">
+                    <h1 id="doc-title" class="text-3xl font-bold text-gray-100 mb-3">Document Title</h1>
+                    <div class="text-gray-400 text-sm space-y-1">
+                        <p>
+                            <span class="text-gray-500">Author:</span> 
+                            <span id="doc-author" class="text-gray-300">Author Name</span>
+                        </p>
+                        <p>
+                            <span class="text-gray-500">Email:</span> 
+                            <a id="doc-email" href="mailto:author@example.com" class="text-gray-300 hover:text-gray-100">author@example.com</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="content-container" class="space-y-4 px-4">
+                <!-- Markdown Box -->
+                <div id="container1" class="bg-gray-800 pb-2 transition-all duration-300 border border-gray-700 rounded">
+                    <div class="p-4 flex items-center justify-between">
+                        <span class="text-base font-medium text-gray-200">Introduction to Machine Learning</span>
+                        <button onclick="toggleBox('box1', 'container1'); event.stopPropagation();" class="text-gray-400 hover:text-gray-200 px-2 py-1">
+                            <span id="arrow1">▼</span>
+                        </button>
+                    </div>
+                    <div id="box1" class="px-4 pb-4">
+                        <div class="bg-gray-900 rounded p-6 border border-gray-700">
+                            <h1 class="text-2xl font-bold mb-4 text-gray-100">Machine Learning Overview</h1>
+                            <p class="mb-4 text-gray-300">Machine learning is a subset of artificial intelligence that enables systems to learn and improve from experience without being explicitly programmed.</p>
+                            
+                            <h2 class="text-xl font-semibold mt-6 mb-3 text-gray-200">Key Concepts</h2>
+                            <ul class="list-disc list-inside space-y-2 mb-4 text-gray-300">
+                                <li><strong class="text-gray-100">Supervised Learning</strong>: Training with labeled data</li>
+                                <li><strong class="text-gray-100">Unsupervised Learning</strong>: Finding patterns in unlabeled data</li>
+                                <li><strong class="text-gray-100">Reinforcement Learning</strong>: Learning through rewards and penalties</li>
+                            </ul>
+                            
+                            <h2 class="text-xl font-semibold mt-6 mb-3 text-gray-200">Common Algorithms</h2>
+                            <p class="mb-2 text-gray-300">Some popular machine learning algorithms include:</p>
+                            <ol class="list-decimal list-inside space-y-2 text-gray-300">
+                                <li>Linear Regression</li>
+                                <li>Decision Trees</li>
+                                <li>Neural Networks</li>
+                                <li>Support Vector Machines</li>
+                            </ol>
+                            
+                            <blockquote class="border-l-2 border-gray-600 pl-4 italic mt-6 text-gray-400">
+                                "Machine learning is the science of getting computers to act without being explicitly programmed." - Andrew Ng
+                            </blockquote>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Math Box -->
+                <div id="container2" class="bg-gray-800 pb-2 transition-all duration-300 border border-gray-700 rounded">
+                    <div class="p-4 flex items-center justify-between">
+                        <span class="text-base font-medium text-gray-200">Mathematical Foundations</span>
+                        <button onclick="toggleBox('box2', 'container2'); event.stopPropagation();" class="text-gray-400 hover:text-gray-200 px-2 py-1">
+                            <span id="arrow2">▼</span>
+                        </button>
+                    </div>
+                    <div id="box2" class="px-4 pb-4">
+                        <div class="bg-gray-900 rounded p-6 border border-gray-700">
+                            <h2 class="text-xl font-bold mb-4 text-gray-100">Linear Regression Formula</h2>
+                            <p class="mb-4 text-gray-300">The hypothesis function for linear regression is:</p>
+                            <div class="bg-gray-800 p-4 rounded border border-gray-700 text-center text-lg mb-6 text-gray-200">
+                                h<sub>θ</sub>(x) = θ<sub>0</sub> + θ<sub>1</sub>x<sub>1</sub> + θ<sub>2</sub>x<sub>2</sub> + ... + θ<sub>n</sub>x<sub>n</sub>
+                            </div>
+                            
+                            <h2 class="text-xl font-bold mb-4 mt-6 text-gray-100">Cost Function</h2>
+                            <p class="mb-4 text-gray-300">The mean squared error cost function:</p>
+                            <div class="bg-gray-800 p-4 rounded border border-gray-700 text-center text-lg mb-6 text-gray-200">
+                                J(θ) = <sup>1</sup>/<sub>2m</sub> Σ<sub>i=1</sub><sup>m</sup> (h<sub>θ</sub>(x<sup>(i)</sup>) - y<sup>(i)</sup>)<sup>2</sup>
+                            </div>
+                            
+                            <h2 class="text-xl font-bold mb-4 mt-6 text-gray-100">Gradient Descent</h2>
+                            <p class="mb-4 text-gray-300">Update rule for gradient descent:</p>
+                            <div class="bg-gray-800 p-4 rounded border border-gray-700 text-center text-lg mb-6 text-gray-200">
+                                θ<sub>j</sub> := θ<sub>j</sub> - α <sup>∂</sup>/<sub>∂θ<sub>j</sub></sub> J(θ)
+                            </div>
+                            
+                            <p class="text-sm text-gray-400 mt-4">Where α is the learning rate and m is the number of training examples.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content boxes will be inserted here -->
+                <!-- Example structure:
+                <div id="container1" class="bg-blue-300 pb-2 transition-all duration-300 cursor-pointer" onclick="toggleBox('box1', 'container1')">
+                    <div class="p-4">
+                        <span id="arrow1" class="text-lg font-bold">▼ Section Title</span>
+                    </div>
+                    <div id="box1" class="px-4 pb-4">
+                        <p>Content goes here</p>
+                    </div>
+                </div>
+                -->
+            </div>
+        </div>
+    </div>
+
+<script>
+  function toggleTOC() {
+    const sidebar = document.getElementById('toc-sidebar');
+    const toggleBtn = document.getElementById('toc-toggle-btn');
+    
+    if (sidebar.style.width === '0px' || sidebar.style.width === '') {
+      sidebar.style.width = '16rem';
+      sidebar.style.padding = '';
+      toggleBtn.classList.add('hidden');
+    } else {
+      sidebar.style.width = '0px';
+      sidebar.style.padding = '0';
+      toggleBtn.classList.remove('hidden');
+    }
+  }
+
+  function toggleBox(boxId, containerId) {
+    const box = document.getElementById(boxId);
+    const arrowId = boxId.replace('box', 'arrow');
+    const arrow = document.getElementById(arrowId);
+    
+    if (box.style.display === 'none') {
+      box.style.display = 'block';
+      arrow.textContent = '▼';
+    } else {
+      box.style.display = 'none';
+      arrow.textContent = '▶';
+    }
+  }
+
   // Hot reload script - polls server for changes
   (function() {
     const POLL_INTERVAL = 1000; // Check every 1 second
